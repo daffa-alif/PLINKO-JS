@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <style>
+        body {
+            background-color: #1a2430;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 900px; /* Increased from 700px to 900px */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .plinko-board {
+            position: relative;
+            width: 500px;
+            height: 800px; /* Increased from 600px to 800px */
+        }
+
+        .peg {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .highlight-peg {
+            background-color: #ff4757;
+        }
+
+        .ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .buckets {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .bucket {
+            width: 55px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: black;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2e86de;
+            color: white;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        button:hover {
+            background-color: #54a0ff;
+        }
+
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .balance {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        .statistics {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            font-size: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        .profit {
+            color: #1dd1a1;
+        }
+
+        .loss {
+            color: #ff6b6b;
+        }
+
+        .price-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 8px;
+            width: 80px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .results {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #1dd1a1;
+            height: 25px;
+        }
+
+        .falling-ball-animation {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 11;
+            animation: fallAnimation 1s ease-in;
+        }
+
+        @keyframes fallAnimation {
+            0% {
+                top: -20px;
+            }
+            100% {
+                top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="">
+<div class="nav" style="text-align: center;">
+    <h1>welcome to plinko <br> (warningn DON'T GAMBLE)</h1>
+</div>
+    <div>
+        
+        <div>
+            <div class="balance">USDT: <span id="balance">1000</span></div>
+    <div class="statistics">
+        Profit: <span id="profit" class="profit">0</span><br>
+        Loss: <span id="loss" class="loss">0</span>
+    </div>
+</div>
+
+<div>
+
+    <div class="container">
+        <div class="plinko-board" id="plinkoBoard"></div>
+        <div class="controls">
+            <div class="price-controls">
+                <span>Ball Price:</span>
+                <button id="decreasePrice">-</button>
+                <input type="number" id="ballPrice" value="5" min="5" max="1000">
+                <button id="increasePrice">+</button>
+            </div>
+            <button id="dropButton">Drop Ball</button>
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+</div>
+<div>
+    
+</div>
+<footer style="background-color: black; color: white; text-align: center; padding: 15px;">
+    Made by daffa-alif 
+    <a href="https://github.com/daffa-alif" target="_blank" style="color: white; margin-left: 5px;">
+        <i class="fab fa-github"></i>
+    </a>
+</footer>
+
+<!-- FontAwesome CDN for GitHub Icon -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+
+</div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

@@ -1,4 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            background-color: #1a2430;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            color: white;
+            overflow-x: hidden;
+        }
 
+        /* HEADER STYLES */
+        .header {
+            background-color: #131b26;
+            padding: 15px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-left: 20px;
+            color: #ff6b81;
+        }
+
+        .warning {
+            color: #ff4757;
+            font-weight: bold;
+            margin-right: 20px;
+            font-style: italic;
+        }
+
+        /* MAIN CONTENT STYLES */
+        .main-content {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px 0;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 900px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .plinko-board {
+            position: relative;
+            width: 500px;
+            height: 800px;
+        }
+
+        .peg {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .highlight-peg {
+            background-color: #ff4757;
+        }
+
+        .ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .buckets {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .bucket {
+            width: 55px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: black;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2e86de;
+            color: white;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        button:hover {
+            background-color: #54a0ff;
+        }
+
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .balance {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        .statistics {
+            position: absolute;
+            top: 70px;
+            left: 20px;
+            font-size: 16px;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        .profit {
+            color: #1dd1a1;
+        }
+
+        .loss {
+            color: #ff6b6b;
+        }
+
+        .price-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 8px;
+            width: 80px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .results {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #1dd1a1;
+            height: 25px;
+        }
+
+        .falling-ball-animation {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 11;
+            animation: fallAnimation 1s ease-in;
+        }
+
+        @keyframes fallAnimation {
+            0% {
+                top: -20px;
+            }
+            100% {
+                top: 20px;
+            }
+        }
+
+        /* FOOTER STYLES */
+        .footer {
+            background-color: #131b26;
+            padding: 15px 0;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-content a {
+            color: #ff6b81;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-content a:hover {
+            color: #ff4757;
+        }
+
+        .github-icon {
+            font-size: 20px;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">PLINKO</div>
+        <div class="warning">⚠️ WARNING: DON'T GAMBLE</div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="balance">USDT: <span id="balance">1000</span></div>
+        <div class="statistics">
+            Profit: <span id="profit" class="profit">0</span><br>
+            Loss: <span id="loss" class="loss">0</span>
+        </div>
+        <div class="container">
+            <div class="plinko-board" id="plinkoBoard"></div>
+            <div class="controls">
+                <div class="price-controls">
+                    <span>Ball Price:</span>
+                    <button id="decreasePrice">-</button>
+                    <input type="number" id="ballPrice" value="5" min="5" max="1000">
+                    <button id="increasePrice">+</button>
+                </div>
+                <button id="dropButton">Drop Ball</button>
+                <div class="results" id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            Made by 
+            <a href="https://github.com/daffa-alif" target="_blank">
+                daffa-alif
+                <i class="fab fa-github github-icon"></i>
+            </a>
+        </div>
+    </footer>
+
+    <script>
         // Game configuration
         const config = {
             rows: 20,                // Increased from 16 to 20 rows for taller board
@@ -369,3 +660,6 @@
                 }
             });
         });
+    </script>
+</body>
+</html>

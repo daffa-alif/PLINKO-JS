@@ -1,4 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo">PLINKO</div>
+        <div class="warning">⚠️ WARNING: DON'T GAMBLE</div>
+    </header>
 
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="balance">USDT: <span id="balance">1000</span></div>
+        <div class="statistics">
+            Profit: <span id="profit" class="profit">0</span><br>
+            Loss: <span id="loss" class="loss">0</span>
+        </div>
+        <div class="container">
+            <div class="plinko-board" id="plinkoBoard"></div>
+            <div class="controls">
+                <div class="price-controls">
+                    <span>Ball Price:</span>
+                    <button id="decreasePrice">-</button>
+                    <input type="number" id="ballPrice" value="5" min="5" max="1000">
+                    <button id="increasePrice">+</button>
+                </div>
+                <button id="dropButton">Drop Ball</button>
+                <div class="results" id="results"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            Made by 
+            <a href="https://github.com/daffa-alif" target="_blank">
+                daffa-alif
+                <i class="fab fa-github github-icon"></i>
+            </a>
+        </div>
+    </footer>
+
+    <script>
         // Game configuration
         const config = {
             rows: 20,                // Increased from 16 to 20 rows for taller board
@@ -369,3 +420,6 @@
                 }
             });
         });
+    </script>
+</body>
+</html>

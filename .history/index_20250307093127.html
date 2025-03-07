@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="">
+<div class="nav" style="text-align: center;">
+    <h1>welcome to plinko <br> (warning DON'T GAMBLE)</h1>
+</div>
+    <div>
+        
+        <div>
+            <div class="balance">USDT: <span id="balance">1000</span></div>
+    <div class="statistics">
+        Profit: <span id="profit" class="profit">0</span><br>
+        Loss: <span id="loss" class="loss">0</span>
+    </div>
+</div>
+
+<div>
+
+    <div class="container">
+        <div class="plinko-board" id="plinkoBoard"></div>
+        <div class="controls">
+            <div class="price-controls">
+                <span>Ball Price:</span>
+                <button id="decreasePrice">-</button>
+                <input type="number" id="ballPrice" value="5" min="5" max="1000">
+                <button id="increasePrice">+</button>
+            </div>
+            <button id="dropButton">Drop Ball</button>
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+</div>
+
+<div>
+    <footer style="background-color: black; color: white; text-align: center; padding: 15px;">
+        Made by daffa-alif 
+        <a href="https://github.com/daffa-alif" target="_blank" style="color: white; margin-left: 5px;">
+            <i class="fab fa-github"></i>
+        </a>
+    </footer>
+</div>
+
+<!-- FontAwesome CDN for GitHub Icon -->
+
+</div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
