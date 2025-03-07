@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plinko Game</title>
+    <style>
+        body {
+            background-color: #1a2430;
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+            overflow: hidden;
+        }
+
+        .container {
+            position: relative;
+            width: 600px;
+            height: 700px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .plinko-board {
+            position: relative;
+            width: 500px;
+            height: 600px;
+        }
+
+        .peg {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background-color: white;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .highlight-peg {
+            background-color: #ff4757;
+        }
+
+        .ball {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 10;
+            transform: translate(-50%, -50%);
+        }
+
+        .buckets {
+            display: flex;
+            width: 100%;
+            justify-content: space-between;
+            position: absolute;
+            bottom: 0;
+        }
+
+        .bucket {
+            width: 55px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-weight: bold;
+            color: black;
+            border-top-left-radius: 5px;
+            border-top-right-radius: 5px;
+        }
+
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: #2e86de;
+            color: white;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        button:hover {
+            background-color: #54a0ff;
+        }
+
+        button:disabled {
+            background-color: #7f8c8d;
+            cursor: not-allowed;
+        }
+
+        .balance {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 20px;
+            font-weight: bold;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 10px 15px;
+            border-radius: 5px;
+            z-index: 100;
+        }
+
+        .price-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        input {
+            padding: 8px;
+            width: 80px;
+            text-align: center;
+            font-size: 18px;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .results {
+            margin-top: 10px;
+            font-size: 18px;
+            color: #1dd1a1;
+            height: 25px;
+        }
+
+        .falling-ball-animation {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 16px;
+            height: 16px;
+            background-color: #ff6b81;
+            border-radius: 50%;
+            z-index: 11;
+            animation: fallAnimation 1s ease-in;
+        }
+
+        @keyframes fallAnimation {
+            0% {
+                top: -20px;
+            }
+            100% {
+                top: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="balance">USDT: <span id="balance">1000</span></div>
+    <div class="container">
+        <div class="plinko-board" id="plinkoBoard"></div>
+        <div class="controls">
+            <div class="price-controls">
+                <span>Ball Price:</span>
+                <button id="decreasePrice">-</button>
+                <input type="number" id="ballPrice" value="30" min="10" max="1000">
+                <button id="increasePrice">+</button>
+            </div>
+            <button id="dropButton">Drop Ball</button>
+            <div class="results" id="results"></div>
+        </div>
+    </div>
+
+    <script>
+        // Game configuration
+        const config = {
+            rows: 15,
+            pegsPerRow: 30,
+            ballSpeed: 0.5,
+            gravity: 0.15,
+            friction: 0.99,
+            pegInfluence: 0.6,  // Slightly reduced from 0.7 
+            maxActiveBalls: 10, // Maximum number of balls allowed simultaneously
+            multipliers: [3.0, 1.5, 1.0, 0.5, 0.5, 0.5, 1.0, 1.5, 3.0],
+            // Spacing multiplier for horizontal peg distribution (wider = more space between pegs)
+            horizontalSpacingFactor: 1.12  // Increased from default 1.0 
+        };
+
+        let balance = 1000; // Set initial balance to 1000 USDT
+        let ballPrice = 30;
+        let activeBalls = []; // Track multiple balls
+        let pegLayout = []; // Store peg positions for collision detection
+        
+        // Initialize the board
+        function initializeBoard() {
+            const board = document.getElementById('plinkoBoard');
+            const boardWidth = board.clientWidth;
+            const boardHeight = board.clientHeight;
+            
+            // Calculate peg spacing with our modified factor to create a wider triangular pattern
+            const horizontalSpacing = (boardWidth / (config.rows + 1)) * config.horizontalSpacingFactor;
+            const verticalSpacing = (boardHeight - 80) / (config.rows);
+            
+            // Create pegs in a triangular pattern with wider spacing
+            for (let row = 0; row < config.rows; row++) {
+                for (let col = 0; col <= row; col++) {
+                    // Skip the first peg (topmost peg) in the first row
+                    if (row === 0 && col === 0) {
+                        continue;
+                    }
+                    
+                    const peg = document.createElement('div');
+                    peg.className = 'peg';
+                    
+                    // Add some highlight pegs (red pegs)
+                    if (Math.random() < 0.2) {
+                        peg.classList.add('highlight-peg');
+                    }
+                    
+                    // Calculate peg position for triangular pattern with wider spacing
+                    // This creates more room for the ball to pass between pegs
+                    const offsetX = boardWidth / 2 - (row * horizontalSpacing) / 2 + col * horizontalSpacing;
+                    const offsetY = verticalSpacing * row + 50;
+                    
+                    peg.style.left = `${offsetX}px`;
+                    peg.style.top = `${offsetY}px`;
+                    
+                    board.appendChild(peg);
+                    
+                    // Store peg position for collision detection
+                    pegLayout.push({
+                        x: offsetX,
+                        y: offsetY,
+                        highlight: peg.classList.contains('highlight-peg'),
+                        element: peg
+                    });
+                }
+            }
+            
+            // Create buckets
+            const buckets = document.createElement('div');
+            buckets.className = 'buckets';
+            
+            const colors = [
+                '#e74c3c', '#e67e22', '#f1c40f', '#2ecc71', '#3498db',
+                '#3498db', '#2ecc71', '#f1c40f', '#e67e22', '#e74c3c'
+            ];
+
+            // Add bucket divs to match the multipliers
+            for (let i = 0; i < config.multipliers.length; i++) {
+                const bucket = document.createElement('div');
+                bucket.className = 'bucket';
+                bucket.style.backgroundColor = colors[i];
+                bucket.textContent = `${config.multipliers[i]}x`;
+                bucket.style.width = `${boardWidth / config.multipliers.length}px`;
+                buckets.appendChild(bucket);
+            }
+            
+            board.appendChild(buckets);
+        }
+        
+        // Create a falling ball animation
+        function showBallDropAnimation() {
+            return new Promise(resolve => {
+                const board = document.getElementById('plinkoBoard');
+                const fallingBall = document.createElement('div');
+                fallingBall.className = 'falling-ball-animation';
+                board.appendChild(fallingBall);
+                
+                setTimeout(() => {
+                    fallingBall.remove();
+                    resolve();
+                }, 500); // Reduced animation time for faster gameplay
+            });
+        }
+        
+        // Create a ball and start animation
+        async function dropBall() {
+            const currentBallPrice = parseInt(document.getElementById('ballPrice').value);
+            if (balance < currentBallPrice) {
+                document.getElementById('results').textContent = "Not enough balance!";
+                setTimeout(() => {
+                    document.getElementById('results').textContent = "";
+                }, 2000);
+                return;
+            }
+            
+            // Check if we've reached the maximum number of active balls
+            if (activeBalls.length >= config.maxActiveBalls) {
+                document.getElementById('results').textContent = "Too many balls in play!";
+                setTimeout(() => {
+                    document.getElementById('results').textContent = "";
+                }, 2000);
+                return;
+            }
+            
+            // Deduct ball price from balance
+            balance -= currentBallPrice;
+            document.getElementById('balance').textContent = balance;
+            
+            // Show the ball drop animation
+            await showBallDropAnimation();
+            
+            const board = document.getElementById('plinkoBoard');
+            const boardWidth = board.clientWidth;
+            
+            // Ball starts at the top center of the board
+            const ball = document.createElement('div');
+            ball.className = 'ball';
+            ball.style.left = `${boardWidth / 2}px`;
+            ball.style.top = '20px';
+            board.appendChild(ball);
+            
+            // Create a new ball object
+            const newBall = {
+                element: ball,
+                id: Date.now(), // Unique ID for each ball
+                x: boardWidth / 2,
+                y: 20,
+                vx: (Math.random() - 0.5) * 0.5, // Small initial random x velocity
+                vy: 1,
+                radius: 8,
+                price: currentBallPrice
+            };
+            
+            // Add ball to active balls array
+            activeBalls.push(newBall);
+            
+            // Start animation if it's not already running
+            if (activeBalls.length === 1) {
+                requestAnimationFrame(animateAllBalls);
+            }
+        }
+        
+        // Animate all active balls
+        function animateAllBalls(timestamp) {
+            if (activeBalls.length === 0) return;
+            
+            const board = document.getElementById('plinkoBoard');
+            const boardWidth = board.clientWidth;
+            const boardHeight = board.clientHeight;
+            
+            // Process each active ball
+            for (let i = activeBalls.length - 1; i >= 0; i--) {
+                const ball = activeBalls[i];
+                
+                // Apply gravity
+                ball.vy += config.gravity;
+                
+                // Apply friction
+                ball.vx *= config.friction;
+                ball.vy *= config.friction;
+                
+                // Update position
+                ball.x += ball.vx;
+                ball.y += ball.vy;
+                
+                // Collision with side walls
+                if (ball.x - ball.radius < 0) {
+                    ball.x = ball.radius;
+                    ball.vx = -ball.vx * 0.5;
+                } else if (ball.x + ball.radius > boardWidth) {
+                    ball.x = boardWidth - ball.radius;
+                    ball.vx = -ball.vx * 0.5;
+                }
+                
+                // Collision with pegs
+                for (const peg of pegLayout) {
+                    const dx = ball.x - peg.x;
+                    const dy = ball.y - peg.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < ball.radius + 6) {
+                        // Calculate the angle of collision
+                        const angle = Math.atan2(dy, dx);
+                        
+                        // Move the ball outside of the peg
+                        const newX = peg.x + (ball.radius + 6) * Math.cos(angle);
+                        const newY = peg.y + (ball.radius + 6) * Math.sin(angle);
+                        
+                        ball.x = newX;
+                        ball.y = newY;
+                        
+                        // Add randomness to the bounce but with a slight bias toward outer edges
+                        let randomness = (Math.random() * 2 - 1) * config.pegInfluence;
+                        
+                        // Very subtle bias toward edges
+                        if (ball.x < boardWidth * 0.3) {
+                            randomness -= 0.05; // Slight bias leftward
+                        } else if (ball.x > boardWidth * 0.7) {
+                            randomness += 0.05; // Slight bias rightward
+                        }
+                        
+                        // Update velocity with a bounce effect and randomness
+                        const speed = Math.sqrt(ball.vx * ball.vx + ball.vy * ball.vy);
+                        ball.vx = Math.cos(angle + randomness) * speed;
+                        ball.vy = Math.sin(Math.abs(angle + randomness)) * speed; // Keep ball moving downward
+
+                        // Highlight the peg temporarily
+                        peg.element.style.backgroundColor = '#ffdd59';
+                        setTimeout(() => {
+                            peg.element.style.backgroundColor = peg.highlight ? '#ff4757' : 'white';
+                        }, 100);
+                    }
+                }
+                
+                // Check if ball reached bottom
+                if (ball.y > boardHeight - 60) {
+                    // Calculate which bucket the ball fell into
+                    const bucketWidth = boardWidth / config.multipliers.length;
+                    const bucketIndex = Math.min(
+                        Math.floor(ball.x / bucketWidth),
+                        config.multipliers.length - 1
+                    );
+                    
+                    // Apply multiplier to the bet
+                    const multiplier = config.multipliers[bucketIndex];
+                    const winAmount = Math.floor(ball.price * multiplier);
+                    balance += winAmount;
+                    document.getElementById('balance').textContent = balance;
+                    
+                    // Display result message
+                    const resultElement = document.getElementById('results');
+                    if (winAmount > ball.price) {
+                        resultElement.textContent = `You won ${winAmount} USDT!`;
+                        resultElement.style.color = '#1dd1a1';
+                    } else if (winAmount < ball.price) {
+                        resultElement.textContent = `You lost ${ball.price - winAmount} USDT`;
+                        resultElement.style.color = '#ff6b6b';
+                    } else {
+                        resultElement.textContent = `You broke even!`;
+                        resultElement.style.color = '#f7d794';
+                    }
+                    
+                    // Highlight the winning bucket
+                    const buckets = document.querySelectorAll('.bucket');
+                    buckets[bucketIndex].style.transform = 'translateY(-5px)';
+                    setTimeout(() => {
+                        buckets[bucketIndex].style.transform = 'translateY(0)';
+                    }, 300);
+                    
+                    // Remove ball from DOM
+                    ball.element.remove();
+                    
+                    // Remove ball from active balls array
+                    activeBalls.splice(i, 1);
+                }
+                
+                // Update ball position in DOM
+                ball.element.style.left = `${ball.x}px`;
+                ball.element.style.top = `${ball.y}px`;
+            }
+            
+            // Continue animation if there are still active balls
+            if (activeBalls.length > 0) {
+                requestAnimationFrame(animateAllBalls);
+            }
+        }
+        
+        // Initialize the game
+        window.addEventListener('DOMContentLoaded', () => {
+            initializeBoard();
+            
+            // Update balance display
+            document.getElementById('balance').textContent = balance;
+            
+            // Add event listener for the drop button
+            document.getElementById('dropButton').addEventListener('click', () => {
+                dropBall();
+            });
+            
+            // Add event listeners for ball price adjustment
+            document.getElementById('decreasePrice').addEventListener('click', () => {
+                const priceInput = document.getElementById('ballPrice');
+                let currentPrice = parseInt(priceInput.value);
+                if (currentPrice > 10) {
+                    priceInput.value = currentPrice - 10;
+                }
+            });
+            
+            document.getElementById('increasePrice').addEventListener('click', () => {
+                const priceInput = document.getElementById('ballPrice');
+                let currentPrice = parseInt(priceInput.value);
+                if (currentPrice < 1000) {
+                    priceInput.value = currentPrice + 10;
+                }
+            });
+            
+            // Ensure ball price is valid
+            document.getElementById('ballPrice').addEventListener('change', (e) => {
+                let value = parseInt(e.target.value);
+                if (isNaN(value) || value < 10) {
+                    e.target.value = 10;
+                } else if (value > 1000) {
+                    e.target.value = 1000;
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+<!-- catatan update kode plinko 
+    tambahkan fitur pemanis earn profit dan lost profit
+-->
